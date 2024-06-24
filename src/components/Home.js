@@ -1,4 +1,4 @@
-import { Button, Grid, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@mui/material'
+import { Button, Dialog, DialogContent, DialogTitle, Grid, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@mui/material'
 import axios from 'axios'
 import { useFormik } from 'formik'
 import React, { useEffect, useState } from 'react'
@@ -6,18 +6,23 @@ import * as Yup from "yup"
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { useNavigate } from 'react-router-dom'
+import ButtonAppBar from "../components/Navbar"
 
 const initialValues = {
     title: ""
 }
 
 const Home = () => {
+
+    const [open, setOpen] = useState(false)
+    const [editItemId, setEditItemId] = useState(null)
+
     const [data, setData] = useState([]);
     const [edit, setEdit] = useState(false);
     const [updateId, setUpdateId] = useState(null);
     const userData = JSON.parse(localStorage.getItem('userData'));
+    // const [user, currentUser] = useState(userData.data.name)
 
-    const navigate = useNavigate()
 
     useEffect(() => {
         fetchData(userData.data.user_Id);
@@ -25,7 +30,7 @@ const Home = () => {
 
     const fetchData = async (userId) => {
         try {
-            const response = await axios.get(`http://localhost:3000/auth/fetch?user_Id=${userId}`);
+            const response = await axios.get(`https://todo-server-three-navy.vercel.app/auth/fetch?user_Id=${userId}`);
             setData(response.data);
         } catch (error) {
             console.log('Error fetching data:', error);
@@ -34,7 +39,7 @@ const Home = () => {
 
     const deleteTodoList = async (id) => {
         try {
-            const response = await axios.delete(`http://localhost:3000/auth/deleteTodo?id=${id}&user_Id=${userData.data.user_Id}`);
+            const response = await axios.delete(`https://todo-server-three-navy.vercel.app/auth/deleteTodo?id=${id}&user_Id=${userData.data.user_Id}`);
             if (response.status === 200) {
                 const updatedData = data.filter(item => item.id !== id);
                 setData(updatedData);
@@ -54,7 +59,7 @@ const Home = () => {
             try {
                 const userData = JSON.parse(localStorage.getItem("userData"));
                 if (edit) {
-                    const response = await axios.put(`http://localhost:3000/auth/editTodo`, {
+                    const response = await axios.put(`https://todo-server-three-navy.vercel.app/auth/editTodo`, {
                         id: updateId,
                         user_Id: userData.data.user_Id,
                         title: values.title
@@ -67,7 +72,7 @@ const Home = () => {
                         alert("Todo has been updated successfully ")
                     }
                 } else {
-                    const response = await axios.post("http://localhost:3000/auth/todo", {
+                    const response = await axios.post("https://todo-server-three-navy.vercel.app/auth/todo", {
                         title: values.title,
                         user_Id: userData.data.user_Id
                     });
@@ -75,6 +80,7 @@ const Home = () => {
                         fetchData(userData.data.user_Id);
                         helpers.resetForm();
                     }
+                    alert("Your Todo has been Added to the table ")
                 }
             } catch (error) {
                 console.log("error", error)
@@ -87,47 +93,68 @@ const Home = () => {
             setValues({ ...values, title: title });
             setEdit(true);
             setUpdateId(id);
+            handleClickOpen(id)
         } catch (error) {
             console.log("Error while updating todo:", error);
         }
     };
 
-    const handleLogout = () => {
-        navigate("/")
-        localStorage.removeItem("userData");
+    const handleClickOpen = (id) => {
+        setOpen(true)
+        setEditItemId(id)
+
     }
+
+    const handleClose = () => {
+        setOpen(false)
+        setEditItemId(null)
+    }
+
+
 
     return (
         <React.Fragment>
-            <div style={{ textAlign: "right", marginTop: 5, marginRight: 10 }}>
-                <Button variant="contained" onClick={handleLogout} >Logout</Button>
-            </div>
+            <ButtonAppBar />
+
             <Grid container justifyContent='center' alignItems='top' style={{ minHeight: '50vh', background: 'pearlWhite', marginTop: 100 }}>
-                <form onSubmit={handleSubmit}>
-                    <Grid item xs={35} md={20} lg={30} >
-                        <TextField
-                            variant='outlined'
-                            fullWidth
-                            type='text'
-                            label='Add Todo'
-                            name='title'
-                            value={values.title}
-                            sx={{ marginBottom: 2 }}
-                            onChange={handleChange}
-                            error={errors.title ? true : false}
-                            helperText={errors.title ? errors.title : null}
-                        />
-                        <Button variant='contained' type='submit'>Submit</Button>
-                    </Grid>
-                </form>
+                <Button variant="outlined" onClick={handleClickOpen} style={{ height: 35, marginTop: 35 }}>
+                    Add Todo here
+                </Button>
+                <Dialog
+                    open={open}
+                    onClose={handleClose}
+                >
+                    <form onSubmit={handleSubmit}>
+                        <Grid item xs={35} md={20} lg={30} >
+
+                            <DialogTitle>Todo-list</DialogTitle>
+                            <DialogContent style={{ width: 400 }}>
+                                <TextField
+                                    variant='outlined'
+                                    fullWidth
+                                    type='text'
+                                    label='Add Todo'
+                                    name='title'
+                                    value={values.title}
+                                    sx={{ marginBottom: 2 }}
+                                    onChange={handleChange}
+                                    error={errors.title ? true : false}
+                                    helperText={errors.title ? errors.title : null}
+                                />
+                                <Button variant='contained' type='submit' onClick={handleClose}>Submit</Button>
+                            </DialogContent>
+                        </Grid>
+                    </form>
+                </Dialog>
             </Grid>
             <Grid container justifyContent="center" style={{ marginBottom: 100 }}>
-                <Grid item xs={50} sm={5}>
+                <Grid item xs={30} sm={5}>
                     <TableContainer component={Paper}>
                         <Table aria-label="simple table">
                             <TableHead>
                                 <TableRow>
                                     <TableCell align='left'>Title</TableCell>
+                                    {/* <TableCell align='center' >Name: {user}</TableCell> */}
                                     <TableCell align='right'>Action</TableCell>
                                 </TableRow>
                             </TableHead>

@@ -4,6 +4,8 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import axios from 'axios'
+import { useDispatch, useSelector } from 'react-redux'
+import { login } from '../redux/authReducer'
 
 const initialValues = {
     email: "",
@@ -13,6 +15,8 @@ const initialValues = {
 const Login = () => {
 
     const navigate = useNavigate();
+    const dispatch = useDispatch()
+    // const isAuthenticated = useSelector(state => state.auth.isAuthenticated)
 
     const { values, errors, handleChange, handleSubmit } = useFormik({
         initialValues: initialValues,
@@ -22,9 +26,11 @@ const Login = () => {
         }),
         onSubmit: async (values, helpers) => {
             try {
-                const response = await axios.post("http://localhost:3000/auth/login", values);
-                // console.log(response)
+                const response = await axios.post("https://todo-server-three-navy.vercel.app/auth/login", values);
                 localStorage.setItem('userData', JSON.stringify(response.data));
+                // console.log("local", localStorage)
+                dispatch(login({ token: response.data.data.token }))
+                console.log("testing", login({ token: response.data.data.token }))
                 navigate("/home")
                 alert("Login User succesfully")
             } catch (error) {

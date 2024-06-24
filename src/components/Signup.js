@@ -24,7 +24,7 @@ const Signup = () => {
         }),
         onSubmit: async (values, helpers) => {
             try {
-                const response = await axios.post("http://localhost:3000/auth/signup", values);
+                const response = await axios.post("https://todo-server-three-navy.vercel.app/auth/signup", values);
                 console.log(response)
                 helpers.resetForm();
                 alert("register user succesfully")
