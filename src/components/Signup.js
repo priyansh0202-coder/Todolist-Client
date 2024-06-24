@@ -24,7 +24,12 @@ const Signup = () => {
         }),
         onSubmit: async (values, helpers) => {
             try {
-                const response = await axios.post("https://todo-server-three-navy.vercel.app/auth/signup", values);
+                const response = await axios.post("https://todo-server-three-navy.vercel.app/auth/signup", values, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': 'https://todolist-client-eight.vercel.app'
+                    }
+                });
                 console.log(response)
                 helpers.resetForm();
                 alert("register user succesfully")
